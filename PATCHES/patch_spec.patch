@@ -1,0 +1,93 @@
+From b42d1c16b8419793be0bc0db3a7bac79db0ac6f5 Mon Sep 17 00:00:00 2001
+From: Louis Abel <label@rockylinux.org>
+Date: Fri, 17 Feb 2023 19:58:02 -0700
+Subject: [PATCH] Remove RHT
+
+---
+ SPECS/abrt.spec | 28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
+
+diff --git a/SPECS/abrt.spec b/SPECS/abrt.spec
+index fc89444..241aa8c 100644
+--- a/SPECS/abrt.spec
++++ b/SPECS/abrt.spec
+@@ -55,7 +55,7 @@
+ Summary: Automatic bug detection and reporting tool
+ Name: abrt
+ Version: 2.10.9
+-Release: 24%{?dist}
++Release: 24%{?dist}.openela.0.1
+ License: GPLv2+
+ URL: https://abrt.readthedocs.org/
+ Source: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.tar.gz
+@@ -88,9 +88,9 @@ Patch0009: 0009-lib-Correct-the-syntax-for-gdb-backtrace-command.patch
+ Patch0024: 0024-dbus-Add-configuration-for-Python3.patch
+ Patch0025: 0025-daemon-Fix-double-closed-fd-race-condition.patch
+ #git format-patch 1725bd258 -N --start-number 26 --topo-order
+-Patch0026: 0026-cli-list-show-a-hint-about-creating-a-case-in-RHTS.patch
+-Patch0027: 0027-cli-mark-the-suggestion-text-for-translation.patch
+-Patch0028: 0028-cli-get-list-of-possible-workflows-for-problem_data_.patch
++#Patch0026: 0026-cli-list-show-a-hint-about-creating-a-case-in-RHTS.patch
++#Patch0027: 0027-cli-mark-the-suggestion-text-for-translation.patch
++#Patch0028: 0028-cli-get-list-of-possible-workflows-for-problem_data_.patch
+ #Patch0029: 0029-spec-Add-explicit-package-version-requirement-of-abr.patch
+ #git format-patch 2.10.9-10.el8 -N --start-number 30 --topo-order
+ #Patch030: 0030-testsuite-dbus-element-handling-Use-external-script.patch
+@@ -227,9 +227,9 @@ Requires: python3-dbus
+ Requires: dmidecode
+ %endif
+ Requires: libreport-plugin-ureport
+-%if 0%{?rhel}
+-Requires: libreport-plugin-rhtsupport
+-%endif
++#%if 0%{?rhel}
++#Requires: libreport-plugin-rhtsupport
++#%endif
+ %if 0%{?fedora}
+ Requires: libreport-plugin-systemd-journal
+ %endif
+@@ -538,10 +538,7 @@ Requires: python2-abrt-addon
+ Requires: python3-abrt-addon
+ %endif # with python3
+ Requires: abrt-addon-xorg
+-%if 0%{?rhel}
+-Requires: libreport-rhel >= %{libreport_ver}
+-Requires: libreport-plugin-rhtsupport >= %{libreport_ver}
+-%else
++%if 0%{!?rhel}
+ Requires: abrt-retrace-client
+ %if %{with bodhi}
+ Requires: abrt-plugin-bodhi
+@@ -582,10 +579,7 @@ Requires: abrt-addon-xorg
+ Requires: gdb-headless
+ Requires: abrt-gui
+ Requires: gnome-abrt
+-%if 0%{?rhel}
+-Requires: libreport-rhel >= %{libreport_ver}
+-Requires: libreport-plugin-rhtsupport >= %{libreport_ver}
+-%else
++%if 0%{!?rhel}
+ Requires: abrt-retrace-client
+ %if %{with bodhi}
+ Requires: abrt-plugin-bodhi
+@@ -735,7 +729,6 @@ CFLAGS="%{optflags} -Werror" %configure \
+ %endif
+ %if 0%{?rhel}
+         --enable-suggest-autoreporting \
+-        --enable-authenticated-autoreporting \
+ %endif
+ %ifnarch %{arm}
+         --enable-native-unwinder \
+@@ -1380,6 +1373,9 @@ killall abrt-dbus >/dev/null 2>&1 || :
+ %config(noreplace) %{_sysconfdir}/profile.d/abrt-console-notification.sh
+ 
+ %changelog
++* Fri Dec 17 2023 Louis Abel <label@rockylinux.org> - 2.10.9-24.openela.0.1
++- Remove RHT patches
++
+ * Thu Feb 16 2023 Matěj Grabovský <mgrabovs@redhat.com> - 2.10.9-24
+ - Revert part of patch for rhbz#2137499
+ - Resolves: rhbz#2137499
+-- 
+2.39.1
+
