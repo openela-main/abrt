@@ -1,0 +1,29 @@
+From 4cdb0a7de54b5aa2646169c33563a2e6545b580d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mat=C4=9Bj=20Grabovsk=C3=BD?= <mgrabovs@redhat.com>
+Date: Tue, 31 Jan 2023 10:41:46 +0100
+Subject: [PATCH] plugins: Update sosreport event
+
+- Run `sos report` in place of the obsolete `sosreport` command.
+- Switch to `dnf` plugin instead of `yum`.
+
+Resolves rhbz#2137499
+---
+ src/plugins/sosreport_event.conf | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/sosreport_event.conf b/src/plugins/sosreport_event.conf
+index 88ca26fe..4799ff0a 100644
+--- a/src/plugins/sosreport_event.conf
++++ b/src/plugins/sosreport_event.conf
+@@ -7,7 +7,7 @@
+                 --only=filesys --only=hardware --only=kernel --only=libraries \
+                 --only=memory --only=networking --only=nfs --only=pam \
+                 --only=process --only=rpm -k rpm.rpmva=off --only=ssh \
+-                --only=services --only=yum --only=date --only=host --only=x11 \
++                --only=services --only=dnf --only=date --only=host --only=x11 \
+                 --only=cups --only=logs --only=grub2 --only=cron --only=pci \
+                 --only=auditd --only=selinux --only=lvm2 --only=sar \
+                 --only=processor \
+-- 
+2.39.1
+

@@ -1,0 +1,33 @@
+From 077bd3543fc233defb7018ea7d8bcf9aea7fa955 Mon Sep 17 00:00:00 2001
+From: Ernestas Kulik <ekulik@redhat.com>
+Date: Tue, 30 Jun 2020 14:19:07 +0200
+Subject: [PATCH] plugins: sosreport_event: Rename nfsserver plugin
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+See
+https://github.com/sosreport/sos/commit/fad72dbacc7e5c3c2721e452823750974ea31550.
+
+The sosreport devs don’t give a shit about anything, so here we are,
+cleaning up their messes at the last minute.
+---
+ src/plugins/sosreport_event.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/sosreport_event.conf b/src/plugins/sosreport_event.conf
+index 57eb6bcb..4a4a29cd 100644
+--- a/src/plugins/sosreport_event.conf
++++ b/src/plugins/sosreport_event.conf
+@@ -5,7 +5,7 @@ EVENT=post-create remote!=1
+         nice sosreport --tmp-dir "$DUMP_DIR" --batch \
+                 --only=anaconda --only=boot --only=devicemapper \
+                 --only=filesys --only=hardware --only=kernel --only=libraries \
+-                --only=memory --only=networking --only=nfsserver --only=pam \
++                --only=memory --only=networking --only=nfs --only=pam \
+                 --only=process --only=rpm -k rpm.rpmva=off --only=ssh \
+                 --only=services --only=yum --only=date --only=host --only=x11 \
+                 --only=cups --only=logs --only=grub2 --only=cron --only=pci \
+-- 
+2.26.2
+

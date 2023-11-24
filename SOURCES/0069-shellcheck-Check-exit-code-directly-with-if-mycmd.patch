@@ -1,0 +1,34 @@
+From 58d1e4fa0a0f6fc2fc3ee773665de70a073ae759 Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Wed, 12 Dec 2018 16:16:55 +0100
+Subject: [PATCH] shellcheck: Check exit code directly with if mycmd
+
+Running a command and then checking its exit status $? against 0 is redundant.
+
+Fixes ShellCheck warning SC2181.
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ src/plugins/abrt-action-analyze-ccpp-local.in | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/plugins/abrt-action-analyze-ccpp-local.in b/src/plugins/abrt-action-analyze-ccpp-local.in
+index 9144c0e6..d2453c19 100644
+--- a/src/plugins/abrt-action-analyze-ccpp-local.in
++++ b/src/plugins/abrt-action-analyze-ccpp-local.in
+@@ -36,9 +36,7 @@ if $INSTALL_DI; then
+         fi
+     done
+ 
+-    ${EXECUTABLE} ${EXTRA_ARGS} --size_mb=4096
+-fi
+-
+-if [ $? = 0 ]; then
+-    abrt-action-generate-backtrace && abrt-action-analyze-backtrace
++   if ${EXECUTABLE} "${EXTRA_ARGS}" --size_mb=4096; then
++       abrt-action-generate-backtrace && abrt-action-analyze-backtrace
++   fi
+ fi
+-- 
+2.26.2
+

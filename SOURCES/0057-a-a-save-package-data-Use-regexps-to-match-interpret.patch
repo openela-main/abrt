@@ -1,0 +1,118 @@
+From caf03304c98dc84086b2f4f60be4b41fc76f31e6 Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Wed, 4 Mar 2020 16:41:28 +0100
+Subject: [PATCH] a-a-save-package-data: Use regexps to match interpreters
+
+Instead of adding more and more interpreters to the list which
+gets outdated after a while, we can utilize regular expressions.
+
+User will still have an option to set Interpreters in config file to
+match any other interpreters.
+
+The regexes should cover interpreters:
+
+Python:
+ * python
+ * python2
+ * python2.7
+ * python3
+ * python3.8
+ * platform-python
+ * platform-python3
+ * platform-python3.8
+
+Perl:
+ * perl
+ * perl5.30.1
+
+PHP:
+ * php
+ * php-cgi
+
+R
+retrace.fedoraproject.org/faf/reports/2832480
+tcl
+retrace.fedoraproject.org/faf/reports/2555398
+
+The regexes should cover interpreters:
+R:
+ * R
+
+tcl:
+ * tclsh
+ * tclsh8.6
+
+Tests require will-crash and perl-interpreter installed.
+
+Resolves: rhbz#1798494
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ src/daemon/abrt-action-save-package-data.c    | 39 ++++++++-
+ 1 files change, 38 insertions(+), 1 deletions(-)
+
+diff --git a/src/daemon/abrt-action-save-package-data.c b/src/daemon/abrt-action-save-package-data.c
+index 21b4c97d..6ced7971 100644
+--- a/src/daemon/abrt-action-save-package-data.c
++++ b/src/daemon/abrt-action-save-package-data.c
+@@ -17,11 +17,47 @@
+     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+ #include <fnmatch.h>
++#include <glib.h>
+ #include "libabrt.h"
+ #include "rpm.h"
+ 
+ #define GPG_CONF "gpg_keys.conf"
+ 
++/**
++    "python3.4, python3.5, python3.6, python3.7, perl, perl5.16.2"
++  * The regexes should cover interpreters with basename:
++  * Python:
++  *   python
++  *   python2
++  *   python3
++  *   python2.7
++  *   python3.8
++  *   platform-python
++  *   platform-python3
++  *   platform-python3.8
++  *
++  * Perl:
++  *   perl
++  *   perl5.30.1
++  *
++  * PHP:
++  *   php
++  *   php-cgi
++  *
++  * R:
++  *   R
++  *
++  * tcl:
++  *   tclsh
++  *   tclsh8.6
++  **/
++#define DEFAULT_INTERPRETERS_REGEX \
++    "^(perl ([[:digit:]][.][[:digit:]]+[.][[:digit:]])? |" \
++    "php (-cgi)? |" \
++    "(platform-)? python ([[:digit:]]([.][[:digit:]])?)? |" \
++    "R |" \
++    "tclsh ([[:digit:]][.][[:digit:]])?)$"
++
+ static bool   settings_bOpenGPGCheck = false;
+ static GList *settings_setOpenGPGPublicKeys = NULL;
+ static GList *settings_setBlackListedPkgs = NULL;
+@@ -304,7 +340,8 @@ static int SavePackageDescriptionToDebugDump(const char *dump_dir_name, const ch
+     /* if basename is known interpreter, we want to blame the running script
+      * not the interpreter
+      */
+-    if (g_list_find_custom(settings_Interpreters, basename, (GCompareFunc)g_strcmp0))
++    if (g_regex_match_simple(DEFAULT_INTERPRETERS_REGEX, basename, G_REGEX_EXTENDED, /*MatchFlags*/0) ||
++        g_list_find_custom(settings_Interpreters, basename, (GCompareFunc)g_strcmp0))
+     {
+         struct pkg_envra *script_pkg = get_script_name(cmdline, &executable, chroot);
+         /* executable may have changed, check it again */
+-- 
+2.25.1
+

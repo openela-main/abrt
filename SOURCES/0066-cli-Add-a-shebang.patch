@@ -1,0 +1,26 @@
+From 445e68861693be83023e93de072cf04caf833e57 Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Wed, 12 Dec 2018 16:07:33 +0100
+Subject: [PATCH] cli: Add a shebang
+
+Fixes a ShellCheck warning SC2148.
+
+error: Tips depend on target shell and yours is unknown. Add a shebang.
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ src/cli/abrt-console-notification.sh | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/cli/abrt-console-notification.sh b/src/cli/abrt-console-notification.sh
+index f1a79ffb..cd69eb38 100755
+--- a/src/cli/abrt-console-notification.sh
++++ b/src/cli/abrt-console-notification.sh
+@@ -1,3 +1,4 @@
++#!/bin/sh
+ # If shell is not connect to a terminal, return immediately, because this script
+ # should print out ABRT's status and it is senseless to continue without
+ # terminal.
+-- 
+2.26.2
+

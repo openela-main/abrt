@@ -1,0 +1,62 @@
+From b2ec373cfec2dd6a39acfd91ea1a67618ee209ac Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Tue, 20 Nov 2018 19:03:55 +0100
+Subject: [PATCH] daemon: Fix double closed fd race condition
+
+When a communication channel is set up between abrtd and abrt-server it uses
+abrt_gio_channel_unix_new(). In that function there is a call g_io_channel_set_close_on_unref() [1].
+This function sets whether to close a file/socket/whatever associated with the channel when channel
+recieves a final unref and is to be destroyed.
+
+Calling a close() on fd associated with the channel before/after g_io_channel_unref()
+created a double close() race condition when ABRT was processing a lot of crashes at the same time.
+
+Thank you benzea for the patch.
+
+Related BZ#1650622
+
+1 - https://developer.gnome.org/glib/stable/glib-IO-Channels.html#g-io-channel-get-close-on-unref
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ src/daemon/abrt-server.c | 1 -
+ src/daemon/abrtd.c       | 4 +---
+ 2 files changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/src/daemon/abrt-server.c b/src/daemon/abrt-server.c
+index 692ccee38..90068069d 100644
+--- a/src/daemon/abrt-server.c
++++ b/src/daemon/abrt-server.c
+@@ -364,7 +364,6 @@ static int run_post_create(const char *dirname, struct response *resp)
+     g_main_loop_unref(context.main_loop);
+     g_io_channel_unref(channel_signal);
+     close(g_signal_pipe[1]);
+-    close(g_signal_pipe[0]);
+ 
+     log_notice("Waiting finished");
+ 
+diff --git a/src/daemon/abrtd.c b/src/daemon/abrtd.c
+index 32753966b..fefb2e9c9 100644
+--- a/src/daemon/abrtd.c
++++ b/src/daemon/abrtd.c
+@@ -114,7 +114,6 @@ static void stop_abrt_server(struct abrt_server_proc *proc)
+ 
+ static void dispose_abrt_server(struct abrt_server_proc *proc)
+ {
+-    close(proc->fdout);
+     free(proc->dirname);
+ 
+     if (proc->watch_id > 0)
+@@ -231,8 +230,7 @@ static gboolean abrt_server_output_cb(GIOChannel *channel, GIOCondition conditio
+     GList *item = g_list_find_custom(s_processes, &fdout, (GCompareFunc)abrt_server_compare_fdout);
+     if (item == NULL)
+     {
+-        log_warning("Closing a pipe fd (%d) without a process assigned", fdout);
+-        close(fdout);
++        log_warning("Removing an input channel fd (%d) without a process assigned", fdout);
+         return FALSE;
+     }
+ 
+-- 
+2.17.2
+

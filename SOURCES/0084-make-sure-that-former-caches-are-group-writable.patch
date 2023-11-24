@@ -1,0 +1,33 @@
+From 62b5e536cf965843ffcd7f9db3cc2d8176c901a2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miroslav=20Such=C3=BD?= <msuchy@redhat.com>
+Date: Wed, 13 May 2020 09:36:32 +0200
+Subject: [PATCH] make sure that former caches are group writable
+
+The files previously can be just 755. We need to be sure they are group writable.
+
+Resolves:
+        https://bugzilla.redhat.com/show_bug.cgi?id=1796245
+---
+ abrt.spec.in | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/abrt.spec.in b/abrt.spec.in
+index f8cebffe3..41b72071a 100644
+--- a/abrt.spec.in
++++ b/abrt.spec.in
+@@ -695,6 +695,12 @@ exit 0
+ 
+ %post addon-ccpp
+ %systemd_post abrt-ccpp.service
++# migration from 2.14.1.18
++if [ ! -e "%{_localstatedir}/cache/abrt-di/.migration-group-add" ]; then
++  chmod -R g+w %{_localstatedir}/cache/abrt-di
++  touch "%{_localstatedir}/cache/abrt-di/.migration-group-add"
++fi
++
+ %systemd_post abrt-journal-core.service
+ %journal_catalog_update
+ 
+-- 
+2.21.3
+

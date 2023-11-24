@@ -1,0 +1,33 @@
+From cbc15ea4a2be99a980a0f762c45b09055ab78527 Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Wed, 12 Dec 2018 16:20:09 +0100
+Subject: [PATCH] shellcheck: Use command instead of type
+
+type undefined in POSIX sh.
+Replacing 'command -v' is similar to the builtin 'type' and is defined in POSIX.
+
+Fixes ShellCheck warning SC2039.
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ src/plugins/abrt-action-analyze-vulnerability.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/abrt-action-analyze-vulnerability.in b/src/plugins/abrt-action-analyze-vulnerability.in
+index 7532b72c..4cae52e6 100755
+--- a/src/plugins/abrt-action-analyze-vulnerability.in
++++ b/src/plugins/abrt-action-analyze-vulnerability.in
+@@ -2,8 +2,8 @@
+ 
+ # Do we have the tools we need?
+ # If no, exit silently.
+-type @GDB@ >/dev/null 2>&1 || exit 0
+-type eu-readelf >/dev/null 2>&1 || exit 0
++command -v @GDB@ >/dev/null 2>&1 || exit 0
++command -v eu-readelf >/dev/null 2>&1 || exit 0
+ 
+ # Do we have coredump?
+ test -r coredump || {
+-- 
+2.26.2
+

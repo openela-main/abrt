@@ -1,0 +1,41 @@
+From 7e9e07dc9ce67777a201beddc8cef32f08293a2b Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Tue, 24 Jul 2018 10:17:05 +0200
+Subject: [PATCH] lib: Correct the syntax for gdb backtrace command
+
+abrt-action-generate-backtrace generates backtraces with error message:
+A syntax error in expression, near `full'.
+
+According to the GDB documentation the correct syntax for backtrace
+command is:
+backtrace [n]
+backtrace full [n]
+
+- sourceware.org/gdb/onlinedocs/gdb/Backtrace.html
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ src/lib/hooklib.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/hooklib.c b/src/lib/hooklib.c
+index 135c7cde..b66fc119 100644
+--- a/src/lib/hooklib.c
++++ b/src/lib/hooklib.c
+@@ -353,11 +353,11 @@ char *get_backtrace(const char *dump_dir_name, unsigned timeout_sec, const char
+     /* Limit bt depth. With no limit, gdb sometimes OOMs the machine */
+     unsigned bt_depth = 1024;
+     const char *thread_apply_all = "thread apply all -ascending";
+-    const char *full = " full";
++    const char *full = "full ";
+     char *bt = NULL;
+     while (1)
+     {
+-        args[bt_cmd_index] = xasprintf("%s backtrace %u%s", thread_apply_all, bt_depth, full);
++        args[bt_cmd_index] = xasprintf("%s backtrace %s%u", thread_apply_all, full, bt_depth);
+         bt = exec_vp(args, /*redirect_stderr:*/ 1, timeout_sec, NULL);
+         free(args[bt_cmd_index]);
+         if ((bt && strnlen(bt, 256*1024) < 256*1024) || bt_depth <= 32)
+-- 
+2.17.2
+
