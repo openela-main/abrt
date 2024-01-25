@@ -1,0 +1,31 @@
+From aa0d2a4cf3050f82e76fa33f556b17655aebe06b Mon Sep 17 00:00:00 2001
+From: Ernestas Kulik <ekulik@redhat.com>
+Date: Wed, 1 Jul 2020 18:12:41 +0200
+Subject: [PATCH] plugins: abrt-action-install-debuginfo: Fix reference
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+0840adafb280be0bab569e68116e1d3897831f97 fixes the problem in a way that
+only works in the upstream code. Here, the code split was not performed
+and we don’t have a config object.
+---
+ src/plugins/abrt-action-install-debuginfo.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/abrt-action-install-debuginfo.in b/src/plugins/abrt-action-install-debuginfo.in
+index 3a46233b..b049d18c 100644
+--- a/src/plugins/abrt-action-install-debuginfo.in
++++ b/src/plugins/abrt-action-install-debuginfo.in
+@@ -250,7 +250,7 @@ if __name__ == "__main__":
+             result = downloader.download(missing, download_exact_files=exact_fls)
+ 
+             # make sure that all downloaded directories are writeable by abrt group
+-            for root, dirs, files in os.walk(config.cachedirs[0]):
++            for root, dirs, files in os.walk(cachedirs[0]):
+                 for walked_dir in dirs:
+                     os.chmod(os.path.join(root, walked_dir), 0o775)
+ 
+-- 
+2.28.0
+

@@ -1,0 +1,94 @@
+From 3d54b451282246ff8dfdff12e809b64c446b48d2 Mon Sep 17 00:00:00 2001
+From: Michal Srb <michal@redhat.com>
+Date: Wed, 31 Mar 2021 13:28:57 +0200
+Subject: [PATCH] Do not report to journal
+
+We do not ship the journal reporter in RHEL 8.
+---
+ src/plugins/ccpp_event.conf    | 8 --------
+ src/plugins/koops_event.conf   | 4 ----
+ src/plugins/python3_event.conf | 4 ----
+ src/plugins/python_event.conf  | 4 ----
+ src/plugins/vmcore_event.conf  | 4 ----
+ src/plugins/xorg_event.conf    | 4 ----
+ 6 files changed, 28 deletions(-)
+
+diff --git a/src/plugins/ccpp_event.conf b/src/plugins/ccpp_event.conf
+index 9883861..f8338d2 100644
+--- a/src/plugins/ccpp_event.conf
++++ b/src/plugins/ccpp_event.conf
+@@ -111,11 +111,3 @@ EVENT=report-gui type=CCpp
+ 
+ EVENT=report-cli type=CCpp
+         report-cli -- "$DUMP_DIR"
+-
+-EVENT=report_systemd-journal type=CCpp analyzer=abrt-ccpp
+-        reporter-systemd-journal --message-id 5ab0271ecf1941a2b89299716e880661 \
+-                                 -F /etc/libreport/plugins/catalog_ccpp_format.conf
+-
+-EVENT=report_systemd-journal type=CCpp analyzer=abrt-journal-core
+-        reporter-systemd-journal --message-id 5ab0271ecf1941a2b89299716e880661 \
+-                                 -F /etc/libreport/plugins/catalog_journal_ccpp_format.conf
+diff --git a/src/plugins/koops_event.conf b/src/plugins/koops_event.conf
+index f4a3ba2..5e53723 100644
+--- a/src/plugins/koops_event.conf
++++ b/src/plugins/koops_event.conf
+@@ -52,7 +52,3 @@ EVENT=report-gui type=Kerneloops mce!=non-fatal
+ 
+ EVENT=report-cli type=Kerneloops
+         report-cli -- "$DUMP_DIR"
+-
+-EVENT=report_systemd-journal type=Kerneloops
+-        reporter-systemd-journal --message-id 8ed36508c5a24d0ab2d633f330899e5f \
+-                                 -F /etc/libreport/plugins/catalog_koops_format.conf
+diff --git a/src/plugins/python3_event.conf b/src/plugins/python3_event.conf
+index 8c5b279..481a1c4 100644
+--- a/src/plugins/python3_event.conf
++++ b/src/plugins/python3_event.conf
+@@ -34,7 +34,3 @@ EVENT=report-gui type=Python3 component!=anaconda
+ 
+ EVENT=report-cli type=Python3 component!=anaconda
+         report-cli -- "$DUMP_DIR"
+-
+-EVENT=report_systemd-journal type=Python3
+-        reporter-systemd-journal --message-id 4d6f95dd9ff54eb7bd1f32a387f327c3 \
+-                                  -F /etc/libreport/plugins/catalog_python3_format.conf
+diff --git a/src/plugins/python_event.conf b/src/plugins/python_event.conf
+index 4e5d39c..1824364 100644
+--- a/src/plugins/python_event.conf
++++ b/src/plugins/python_event.conf
+@@ -34,7 +34,3 @@ EVENT=report-gui type=Python component!=anaconda
+ 
+ EVENT=report-cli type=Python component!=anaconda
+         report-cli -- "$DUMP_DIR"
+-
+-EVENT=report_systemd-journal type=Python
+-        reporter-systemd-journal --message-id b25955d7738d4db9a498a734620194ef \
+-                                  -F /etc/libreport/plugins/catalog_python_format.conf
+diff --git a/src/plugins/vmcore_event.conf b/src/plugins/vmcore_event.conf
+index bf97b39..61bc9d1 100644
+--- a/src/plugins/vmcore_event.conf
++++ b/src/plugins/vmcore_event.conf
+@@ -64,7 +64,3 @@ EVENT=report-gui type=vmcore
+ 
+ EVENT=report-cli type=vmcore
+     report-cli -- "$DUMP_DIR"
+-
+-EVENT=report_systemd-journal type=vmcore
+-    reporter-systemd-journal --message-id ebde29430d524b5fb043138098fd7e89 \
+-                             -F /etc/libreport/plugins/catalog_vmcore_format.conf
+diff --git a/src/plugins/xorg_event.conf b/src/plugins/xorg_event.conf
+index 5ffe4bf..8d0d585 100644
+--- a/src/plugins/xorg_event.conf
++++ b/src/plugins/xorg_event.conf
+@@ -26,7 +26,3 @@ EVENT=report-gui type=xorg
+ 
+ EVENT=report-cli type=xorg
+ 	report-cli -- "$DUMP_DIR"
+-
+-EVENT=report_systemd-journal type=xorg
+-    reporter-systemd-journal --message-id 6a9a2826cc074934bff0dd0a45a10453 \
+-                             -F /etc/libreport/plugins/catalog_xorg_format.conf
+-- 
+2.30.2
+

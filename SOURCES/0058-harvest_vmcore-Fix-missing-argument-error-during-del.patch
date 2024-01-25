@@ -1,0 +1,42 @@
+From 11869ec9290a32c028d9d2741a7466206b635f59 Mon Sep 17 00:00:00 2001
+From: Jake Daryll Obina <jake.obina@gmail.com>
+Date: Mon, 25 Jun 2018 11:52:11 +0800
+Subject: [PATCH] harvest_vmcore: Fix missing argument error during
+ delete_and_close()
+
+delete_and_close() requires a directory name argument and it is being called
+without one. This argument is really not necessary though since the directory
+name is already saved in the directory object (can be queried via the directory
+object's name attribute), and it is the saved directory that is always deleted
+regardless of the argument passed in.
+
+Signed-off-by: Jake Daryll Obina <jake.obina@gmail.com>
+---
+ src/hooks/abrt_harvest_vmcore.py.in | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/hooks/abrt_harvest_vmcore.py.in b/src/hooks/abrt_harvest_vmcore.py.in
+index 7d4bba52..66c3ad37 100644
+--- a/src/hooks/abrt_harvest_vmcore.py.in
++++ b/src/hooks/abrt_harvest_vmcore.py.in
+@@ -128,13 +128,15 @@ def create_abrtd_info(dest, uuid):
+     return dd
+ 
+ 
+-def delete_and_close(dd, dd_dirname):
++def delete_and_close(dd):
+     """
+     Deletes the given dump directory and closes it.
+ 
+     dd - dump directory object
+-    dd_dirname - full path to dump directory
+     """
++    # Save the directory name as the directory object could be destroyed during
++    # delete().
++    dd_dirname = dd.name
+     if not dd.delete() == 0:
+         sys.stderr.write("Unable to delete '%s'\n" % (dd_dirname))
+         return
+-- 
+2.25.1
+

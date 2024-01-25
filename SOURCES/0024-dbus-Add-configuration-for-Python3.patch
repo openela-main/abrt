@@ -1,0 +1,60 @@
+From d5c53fefd25ef90ece1d3481c9af1552d458eb97 Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Tue, 25 Sep 2018 13:28:24 +0200
+Subject: [PATCH] dbus: Add configuration for Python3
+
+abrt-dbus misses a configuration file for Python3 and it instead includes Python2 configuration.
+
+Related: #1652676
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ doc/dbus-configuration/Makefile.am                    | 11 ++++++++++-
+ .../com.redhat.problems.configuration.python3.xml.in  | 11 +++++++++++
+ 3 files changed, 26 insertions(+), 1 deletion(-)
+ create mode 100644 doc/dbus-configuration/com.redhat.problems.configuration.python3.xml.in
+
+diff --git a/doc/dbus-configuration/Makefile.am b/doc/dbus-configuration/Makefile.am
+index 889713943..a02706de9 100644
+--- a/doc/dbus-configuration/Makefile.am
++++ b/doc/dbus-configuration/Makefile.am
+@@ -9,9 +9,18 @@ dist_dbusabrtinterfaces_DATA = \
+ 	com.redhat.problems.configuration.abrt.xml \
+ 	com.redhat.problems.configuration.ccpp.xml \
+ 	com.redhat.problems.configuration.oops.xml \
+-	com.redhat.problems.configuration.python.xml \
+ 	com.redhat.problems.configuration.xorg.xml
+ 
++if BUILD_PYTHON2
++dist_dbusabrtinterfaces_DATA += \
++	com.redhat.problems.configuration.python.xml
++endif
++
++if BUILD_PYTHON3
++dist_dbusabrtinterfaces_DATA += \
++	com.redhat.problems.configuration.python3.xml
++endif
++
+ if BUILD_ADDON_VMCORE
+ dist_dbusabrtinterfaces_DATA += \
+ 	com.redhat.problems.configuration.vmcore.xml
+diff --git a/doc/dbus-configuration/com.redhat.problems.configuration.python3.xml.in b/doc/dbus-configuration/com.redhat.problems.configuration.python3.xml.in
+new file mode 100644
+index 000000000..68b6760b2
+--- /dev/null
++++ b/doc/dbus-configuration/com.redhat.problems.configuration.python3.xml.in
+@@ -0,0 +1,11 @@
++<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
++ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
++
++<node name="/com/redhat/problems/configuration/python3">
++    <annotation name="com.redhat.problems.ConfFile" value="/etc/abrt/plugins/python3.conf" />
++    <annotation name="com.redhat.problems.DefaultConfFile" value="/usr/share/abrt/conf.d/plugins/python3.conf" />
++
++    <interface name="com.redhat.problems.configuration.python3">
++        <property name="RequireAbsolutePath" type="b" access="readwrite" />
++    </interface>
++</node>
+-- 
+2.17.2
+

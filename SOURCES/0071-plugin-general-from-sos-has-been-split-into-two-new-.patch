@@ -1,0 +1,39 @@
+From 8394acb416a48cdac9a8000aa8a63736814ac71b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miroslav=20Such=C3=BD?= <msuchy@redhat.com>
+Date: Fri, 17 Aug 2018 16:18:21 +0200
+Subject: [PATCH] plugin "general" from sos has been split into two new plugins
+
+This resolves BZ 1608444
+---
+ abrt.spec.in                     | 1 +
+ src/plugins/sosreport_event.conf | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/abrt.spec.in b/abrt.spec.in
+index de54f121..65d55510 100644
+--- a/abrt.spec.in
++++ b/abrt.spec.in
+@@ -96,6 +96,7 @@ BuildRequires: python3-humanize
+ 
+ Requires: libreport >= %{libreport_ver}
+ Requires: satyr >= %{satyr_ver}
++Requires: sos >= 3.6
+ # these only exist on suse
+ %if 0%{?suse_version}
+ BuildRequires: dbus-1-glib-devel
+diff --git a/src/plugins/sosreport_event.conf b/src/plugins/sosreport_event.conf
+index 88ca26fe..5e366ec6 100644
+--- a/src/plugins/sosreport_event.conf
++++ b/src/plugins/sosreport_event.conf
+@@ -7,7 +7,7 @@ EVENT=post-create remote!=1
+                 --only=filesys --only=hardware --only=kernel --only=libraries \
+                 --only=memory --only=networking --only=nfsserver --only=pam \
+                 --only=process --only=rpm -k rpm.rpmva=off --only=ssh \
+-                --only=startup --only=yum --only=general --only=x11 \
++                --only=startup --only=yum --only=date --only=host --only=x11 \
+                 --only=cups --only=logs --only=grub2 --only=cron --only=pci \
+                 --only=auditd --only=selinux --only=lvm2 --only=sar \
+                 --only=processor \
+-- 
+2.26.2
+

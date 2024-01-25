@@ -1,0 +1,99 @@
+From 0966d7fd6e3d51fc99088de94343212c5f09e74d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Miroslav=20Such=C3=BD?= <msuchy@redhat.com>
+Date: Tue, 5 May 2020 18:28:50 +0200
+Subject: [PATCH] setgid instead of setuid the
+ abrt-action-install-debuginfo-to-abrt-cache [RHBZ 1796245]
+
+OpenSCAP does not like setuid files, we can be setgid instead.
+
+We need to g+w the directories so other run under a different user can be able to write there too.
+
+Resolves:
+    https://bugzilla.redhat.com/show_bug.cgi?id=1796245
+---
+ abrt.spec.in                                      |  4 ++--
+ .../abrt-action-install-debuginfo-to-abrt-cache.c | 15 +++------------
+ src/plugins/abrt-action-install-debuginfo.in      |  6 ++++++
+ 3 files changed, 11 insertions(+), 14 deletions(-)
+
+diff --git a/abrt.spec.in b/abrt.spec.in
+index 326294008..4c01fffe6 100644
+--- a/abrt.spec.in
++++ b/abrt.spec.in
+@@ -1015,8 +1015,8 @@ killall abrt-dbus >/dev/null 2>&1 || :
+ 
+ %dir %{_localstatedir}/lib/abrt
+ 
+-# attr(6755) ~= SETUID|SETGID
+-%attr(6755, abrt, abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
++# attr(2755) ~= SETGID
++%attr(2755, abrt, abrt) %{_libexecdir}/abrt-action-install-debuginfo-to-abrt-cache
+ 
+ %{_bindir}/abrt-action-analyze-c
+ %{_bindir}/abrt-action-trim-files
+diff --git a/src/plugins/abrt-action-install-debuginfo-to-abrt-cache.c b/src/plugins/abrt-action-install-debuginfo-to-abrt-cache.c
+index 71967f77a..0f843512e 100644
+--- a/src/plugins/abrt-action-install-debuginfo-to-abrt-cache.c
++++ b/src/plugins/abrt-action-install-debuginfo-to-abrt-cache.c
+@@ -78,7 +78,6 @@ int main(int argc, char **argv)
+     const gid_t egid = getegid();
+     const gid_t rgid = getgid();
+     const uid_t euid = geteuid();
+-    const gid_t ruid = getuid();
+ 
+     /* We need to open the build ids file under the caller's UID/GID to avoid
+      * information disclosures when reading files with changed UID.
+@@ -93,17 +92,11 @@ int main(int argc, char **argv)
+         if (setregid(egid, rgid) < 0)
+             perror_msg_and_die("setregid(egid, rgid)");
+ 
+-        if (setreuid(euid, ruid) < 0)
+-            perror_msg_and_die("setreuid(euid, ruid)");
+-
+         const int build_ids_fd = open(build_ids, O_RDONLY);
+ 
+         if (setregid(rgid, egid) < 0)
+             perror_msg_and_die("setregid(rgid, egid)");
+ 
+-        if (setreuid(ruid, euid) < 0 )
+-            perror_msg_and_die("setreuid(ruid, euid)");
+-
+         if (build_ids_fd < 0)
+             perror_msg_and_die("Failed to open file '%s'", build_ids);
+ 
+@@ -155,12 +148,10 @@ int main(int argc, char **argv)
+      */
+     /* do setregid only if we have to, to not upset selinux needlessly */
+     if (egid != rgid)
+-        IGNORE_RESULT(setregid(egid, egid));
+-    if (euid != ruid)
+     {
+-        IGNORE_RESULT(setreuid(euid, euid));
+-        /* We are suid'ed! */
+-        /* Prevent malicious user from messing up with suid'ed process: */
++        IGNORE_RESULT(setregid(egid, egid));
++        /* We are sgid'ed! */
++        /* Prevent malicious user from messing up with sgid'ed process: */
+ #if 1
+ // We forgot to sanitize PYTHONPATH. And who knows what else we forgot
+ // (especially considering *future* new variables of this kind).
+diff --git a/src/plugins/abrt-action-install-debuginfo.in b/src/plugins/abrt-action-install-debuginfo.in
+index 6269c221e..659a9aa84 100644
+--- a/src/plugins/abrt-action-install-debuginfo.in
++++ b/src/plugins/abrt-action-install-debuginfo.in
+@@ -248,6 +248,12 @@ if __name__ == "__main__":
+                                     repo_pattern=repo_pattern,
+                                     releasever=releasever)
+             result = downloader.download(missing, download_exact_files=exact_fls)
++
++            # make sure that all downloaded directories are writeable by abrt group
++            for root, dirs, files in os.walk(self.cachedirs[0]):
++                for walked_dir in dirs:
++                    os.chmod(os.path.join(root, walked_dir), 0o775)
++
+         except OSError as ex:
+             if ex.errno == errno.EPIPE:
+                 clean_up(TMPDIR, silent=True)
+-- 
+2.21.3
+

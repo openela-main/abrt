@@ -1,0 +1,155 @@
+From b9005f1a69ad989a50ffa68a41c959551f0cb158 Mon Sep 17 00:00:00 2001
+From: Matej Habrnal <mhabrnal@redhat.com>
+Date: Wed, 23 May 2018 11:15:38 +0200
+Subject: [PATCH 1/1] Remove dependency on deprecated nss-pem
+
+This commit removes dependency on nss-pem which is deprecated and
+reimplements TLS client to use libnssckbi.so instead [1].
+
+Resolves #1578427
+
+[1] https://docs-old.fedoraproject.org/en-US/Fedora_Security_Team/1/html/Defensive_Coding/sect-Defensive_Coding-TLS-Client-NSS.html#ex-Defensive_Coding-TLS-NSS-Init
+
+Signed-off-by: Matej Habrnal <mhabrnal@redhat.com>
+---
+ abrt.spec.in                      |  2 +-
+ src/plugins/abrt-retrace-client.c |  5 ++-
+ src/plugins/https-utils.c         | 53 ++++++-------------------------
+ src/plugins/https-utils.h         |  4 +--
+ 4 files changed, 15 insertions(+), 49 deletions(-)
+
+diff --git a/abrt.spec.in b/abrt.spec.in
+index f423562c..eb6fdaf9 100644
+--- a/abrt.spec.in
++++ b/abrt.spec.in
+@@ -255,7 +255,7 @@ Summary: %{name}'s retrace client
+ Requires: %{name} = %{version}-%{release}
+ Requires: xz
+ Requires: tar
+-Requires: nss-pem
++Requires: p11-kit-trust
+ 
+ %description retrace-client
+ This package contains the client application for Retrace server
+diff --git a/src/plugins/abrt-retrace-client.c b/src/plugins/abrt-retrace-client.c
+index ae5ef83b..d50d45fb 100644
+--- a/src/plugins/abrt-retrace-client.c
++++ b/src/plugins/abrt-retrace-client.c
+@@ -1281,8 +1281,7 @@ int main(int argc, char **argv)
+ 
+     /* Initialize NSS */
+     SECMODModule *mod;
+-    PK11GenericObject *cert;
+-    nss_init(&mod, &cert);
++    nss_init(&mod);
+ 
+     /* Run the desired operation. */
+     int result = 0;
+@@ -1334,7 +1333,7 @@ int main(int argc, char **argv)
+         error_msg_and_die(_("Unknown operation: %s."), operation);
+ 
+     /* Shutdown NSS. */
+-    nss_close(mod, cert);
++    nss_close(mod);
+ 
+     return result;
+ }
+diff --git a/src/plugins/https-utils.c b/src/plugins/https-utils.c
+index 7a22729b..7a9479ca 100644
+--- a/src/plugins/https-utils.c
++++ b/src/plugins/https-utils.c
+@@ -142,37 +142,6 @@ static const char *ssl_get_configdir()
+     return NULL;
+ }
+ 
+-static PK11GenericObject *nss_load_cacert(const char *filename)
+-{
+-    PK11SlotInfo *slot = PK11_FindSlotByName("PEM Token #0");
+-    if (!slot)
+-        error_msg_and_die(_("Failed to get slot 'PEM Token #0': %d."), PORT_GetError());
+-
+-    CK_ATTRIBUTE template[4];
+-    CK_OBJECT_CLASS class = CKO_CERTIFICATE;
+-
+-#define PK11_SETATTRS(x,id,v,l) \
+-    do {                        \
+-        (x)->type = (id);       \
+-        (x)->pValue=(v);        \
+-        (x)->ulValueLen = (l);  \
+-    } while (0)
+-
+-    PK11_SETATTRS(&template[0], CKA_CLASS, &class, sizeof(class));
+-    CK_BBOOL cktrue = CK_TRUE;
+-    PK11_SETATTRS(&template[1], CKA_TOKEN, &cktrue, sizeof(CK_BBOOL));
+-    PK11_SETATTRS(&template[2], CKA_LABEL, (unsigned char*)filename, strlen(filename)+1);
+-    PK11_SETATTRS(&template[3], CKA_TRUST, &cktrue, sizeof(CK_BBOOL));
+-    PK11GenericObject *cert = PK11_CreateGenericObject(slot, template, 4, PR_FALSE);
+-    PK11_FreeSlot(slot);
+-    return cert;
+-}
+-
+-static char *ssl_get_password(PK11SlotInfo *slot, PRBool retry, void *arg)
+-{
+-    return NULL;
+-}
+-
+ void ssl_connect(struct https_cfg *cfg, PRFileDesc **tcp_sock, PRFileDesc **ssl_sock)
+ {
+     PRAddrInfo *addrinfo = PR_GetAddrInfoByName(cfg->url, PR_AF_UNSPEC, PR_AI_ADDRCONFIG);
+@@ -411,7 +380,7 @@ char *http_join_chunked(char *body, int bodylen)
+     return strbuf_free_nobuf(result);
+ }
+ 
+-void nss_init(SECMODModule **mod, PK11GenericObject **cert)
++void nss_init(SECMODModule **mod)
+ {
+     SECStatus sec_status;
+     const char *configdir = ssl_get_configdir();
+@@ -422,21 +391,19 @@ void nss_init(SECMODModule **mod, PK11GenericObject **cert)
+     if (SECSuccess != sec_status)
+         error_msg_and_die(_("Failed to initialize NSS."));
+ 
+-    char *user_module = xstrdup("library=libnsspem.so name=PEM");
+-    *mod = SECMOD_LoadUserModule(user_module, NULL, PR_FALSE);
+-    free(user_module);
+-    if (!*mod || !(*mod)->loaded)
+-        error_msg_and_die(_("Failed to initialize security module."));
+-
+-    *cert = nss_load_cacert("/etc/pki/tls/certs/ca-bundle.crt");
+-    PK11_SetPasswordFunc(ssl_get_password);
+-    NSS_SetDomesticPolicy();
++    // Initialize the trusted certificate store.
++    char module_name[] = "library=libnssckbi.so name=\"Root Certs\"";
++    *mod = SECMOD_LoadUserModule(module_name, NULL, PR_FALSE);
++    if (*mod == NULL || !(*mod)->loaded)
++    {
++        const PRErrorCode err = PR_GetError();
++        error_msg_and_die("error: NSPR error code %d: %s\n", err, PR_ErrorToName(err));
++    }
+ }
+ 
+-void nss_close(SECMODModule *mod, PK11GenericObject *cert)
++void nss_close(SECMODModule *mod)
+ {
+     SSL_ClearSessionCache();
+-    PK11_DestroyGenericObject(cert);
+     SECMOD_UnloadUserModule(mod);
+     SECMOD_DestroyModule(mod);
+     SECStatus sec_status = NSS_Shutdown();
+diff --git a/src/plugins/https-utils.h b/src/plugins/https-utils.h
+index 8ff9aede..f0b167d3 100644
+--- a/src/plugins/https-utils.h
++++ b/src/plugins/https-utils.h
+@@ -61,7 +61,7 @@ int http_get_response_code(const char *message);
+ void http_print_headers(FILE *file, const char *message);
+ char *tcp_read_response(PRFileDesc *tcp_sock);
+ char *http_join_chunked(char *body, int bodylen);
+-void nss_init(SECMODModule **mod, PK11GenericObject **cert);
+-void nss_close(SECMODModule *mod, PK11GenericObject *cert);
++void nss_init(SECMODModule **mod);
++void nss_close(SECMODModule *mod);
+ 
+ #endif
+-- 
+2.17.0
+

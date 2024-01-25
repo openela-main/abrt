@@ -1,0 +1,28 @@
+From 39faa81497c9b7e1b443c6aed8ddaa0f2516dc66 Mon Sep 17 00:00:00 2001
+From: Ernestas Kulik <ekulik@redhat.com>
+Date: Thu, 4 Jun 2020 12:53:13 +0200
+Subject: [PATCH] abrt-action-install-debuginfo: Fix variable reference
+
+The code in cc79333dcd3fea7701ebbf97fb0919fbad90f3f0 was initially
+intended for libreport, but a thinko was introduced when it was moved
+over.
+---
+ src/plugins/abrt-action-install-debuginfo.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/abrt-action-install-debuginfo.in b/src/plugins/abrt-action-install-debuginfo.in
+index 659a9aa84..3a46233b7 100644
+--- a/src/plugins/abrt-action-install-debuginfo.in
++++ b/src/plugins/abrt-action-install-debuginfo.in
+@@ -250,7 +250,7 @@ if __name__ == "__main__":
+             result = downloader.download(missing, download_exact_files=exact_fls)
+ 
+             # make sure that all downloaded directories are writeable by abrt group
+-            for root, dirs, files in os.walk(self.cachedirs[0]):
++            for root, dirs, files in os.walk(config.cachedirs[0]):
+                 for walked_dir in dirs:
+                     os.chmod(os.path.join(root, walked_dir), 0o775)
+ 
+-- 
+2.21.3
+

@@ -1,0 +1,30 @@
+From 0a3ea24b2158f19342fce8523aeb2e26204bbcad Mon Sep 17 00:00:00 2001
+From: Jakub Filak <jfilak@redhat.com>
+Date: Fri, 16 Oct 2015 11:39:00 +0200
+Subject: [PATCH] sos: use 'services' instead of 'startup'
+
+The plugin has been renamed to 'services'.
+
+Resolves: #1272005
+
+Signed-off-by: Jakub Filak <jfilak@redhat.com>
+---
+ src/plugins/sosreport_event.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/plugins/sosreport_event.conf b/src/plugins/sosreport_event.conf
+index 5e366ec6..57eb6bcb 100644
+--- a/src/plugins/sosreport_event.conf
++++ b/src/plugins/sosreport_event.conf
+@@ -7,7 +7,7 @@ EVENT=post-create remote!=1
+                 --only=filesys --only=hardware --only=kernel --only=libraries \
+                 --only=memory --only=networking --only=nfsserver --only=pam \
+                 --only=process --only=rpm -k rpm.rpmva=off --only=ssh \
+-                --only=startup --only=yum --only=date --only=host --only=x11 \
++                --only=services --only=yum --only=date --only=host --only=x11 \
+                 --only=cups --only=logs --only=grub2 --only=cron --only=pci \
+                 --only=auditd --only=selinux --only=lvm2 --only=sar \
+                 --only=processor \
+-- 
+2.26.2
+

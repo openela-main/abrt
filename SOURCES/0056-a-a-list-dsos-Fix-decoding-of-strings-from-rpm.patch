@@ -1,0 +1,57 @@
+From f6e07167e8769219471b10a3c20fa64ada8ce61f Mon Sep 17 00:00:00 2001
+From: Martin Kutlak <mkutlak@redhat.com>
+Date: Fri, 12 Jul 2019 17:46:48 +0200
+Subject: [PATCH] a-a-list-dsos: Fix decoding of strings from rpm
+
+rpm used to return bytes but that was changed to return strings in recent release.
+
+Related: rhbz#1693751
+Resolves: rhbz#1694970
+
+Signed-off-by: Martin Kutlak <mkutlak@redhat.com>
+---
+ abrt.spec.in                      |  1 +
+ src/plugins/abrt-action-list-dsos | 13 ++++++-------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/abrt.spec.in b/abrt.spec.in
+index 03f1a67d..b9c9d5f1 100644
+--- a/abrt.spec.in
++++ b/abrt.spec.in
+@@ -233,6 +233,7 @@ Requires: python2-libreport
+ %if %{with python3}
+ Requires: python3-libreport
+ %endif # with python3
++Requires: rpm >= 4.14.2-11
+ 
+ %description addon-ccpp
+ This package contains %{name}'s C/C++ analyzer plugin.
+diff --git a/src/plugins/abrt-action-list-dsos b/src/plugins/abrt-action-list-dsos
+index adb228a4..8bf5415e 100644
+--- a/src/plugins/abrt-action-list-dsos
++++ b/src/plugins/abrt-action-list-dsos
+@@ -84,15 +84,14 @@ if __name__ == "__main__":
+                             outname = None
+ 
+                         vendor = h[rpm.RPMTAG_VENDOR]
+-                        if vendor != None:
+-                            vendor = vendor.decode('utf-8')
++                        rpmtag_nevra = h[rpm.RPMTAG_NEVRA]
+ 
+                         outfile.write("%s %s (%s) %s\n" %
+-                                    (path,
+-                                     h[rpm.RPMTAG_NEVRA].decode('utf-8'),
+-                                     vendor,
+-                                     h[rpm.RPMTAG_INSTALLTIME])
+-                                    )
++                                      (path,
++                                       rpmtag_nevra,
++                                       vendor,
++                                       h[rpm.RPMTAG_INSTALLTIME])
++                                      )
+ 
+         except Exception as ex:
+             error_msg_and_die("Can't get the DSO list: %s" % ex)
+-- 
+2.21.0
+
