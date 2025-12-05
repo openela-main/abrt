@@ -55,7 +55,7 @@
 Summary: Automatic bug detection and reporting tool
 Name: abrt
 Version: 2.10.9
-Release: 24%{?dist}.openela.0.1
+Release: 25.openela.0.1%{?dist}
 License: GPLv2+
 URL: https://abrt.readthedocs.org/
 Source: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.tar.gz
@@ -162,6 +162,8 @@ Patch0090: 0090-skip-journal-reporting.patch
 Patch0091: 0091-plugins-Update-sosreport-event.patch
 # git format-patch -1 a58e1fb2 --start-number=92
 Patch0092: 0092-abrt-dump-oops-Fix-vmcore-call-trace-parsing.patch
+# CVE-2025-12744
+Patch0096: 0096-CVE-2025-12744.patch
 
 # autogen.sh is need to regenerate all the Makefile files
 Patch1000: 1000-Add-autogen.sh.patch
@@ -1373,8 +1375,12 @@ killall abrt-dbus >/dev/null 2>&1 || :
 %config(noreplace) %{_sysconfdir}/profile.d/abrt-console-notification.sh
 
 %changelog
-* Fri Dec 17 2023 Louis Abel <label@rockylinux.org> - 2.10.9-24.openela.0.1
+* Fri Dec 05 2025 Louis Abel <label@rockylinux.org> - 2.10.9-25.openela.0.1
 - Remove RHT patches
+
+* Tue Nov 18 2025 Michal Srb <michal@redhat.com> - 2.10.9-25
+- a-a-save-container-data: validate input
+- Resolves: CVE-2025-12744
 
 * Thu Feb 16 2023 Matěj Grabovský <mgrabovs@redhat.com> - 2.10.9-24
 - Revert part of patch for rhbz#2137499
