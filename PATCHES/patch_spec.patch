@@ -1,22 +1,22 @@
-From b42d1c16b8419793be0bc0db3a7bac79db0ac6f5 Mon Sep 17 00:00:00 2001
-From: Louis Abel <label@rockylinux.org>
-Date: Fri, 17 Feb 2023 19:58:02 -0700
-Subject: [PATCH] Remove RHT
+From 447be897c739f32b2aac33a33408d45c5a341ecd Mon Sep 17 00:00:00 2001
+From: Alex Burmashev <alexander.burmashev@oracle.com>
+Date: Fri, 5 Dec 2025 12:00:16 +0000
+Subject: [PATCH] Update OpenELA debranding
 
 ---
  SPECS/abrt.spec | 28 ++++++++++++----------------
  1 file changed, 12 insertions(+), 16 deletions(-)
 
 diff --git a/SPECS/abrt.spec b/SPECS/abrt.spec
-index fc89444..241aa8c 100644
+index 3bfa4c6..5be37b9 100644
 --- a/SPECS/abrt.spec
 +++ b/SPECS/abrt.spec
 @@ -55,7 +55,7 @@
  Summary: Automatic bug detection and reporting tool
  Name: abrt
  Version: 2.10.9
--Release: 24%{?dist}
-+Release: 24%{?dist}.openela.0.1
+-Release: 25%{?dist}
++Release: 25.openela.0.1%{?dist}
  License: GPLv2+
  URL: https://abrt.readthedocs.org/
  Source: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.tar.gz
@@ -33,7 +33,7 @@ index fc89444..241aa8c 100644
  #Patch0029: 0029-spec-Add-explicit-package-version-requirement-of-abr.patch
  #git format-patch 2.10.9-10.el8 -N --start-number 30 --topo-order
  #Patch030: 0030-testsuite-dbus-element-handling-Use-external-script.patch
-@@ -227,9 +227,9 @@ Requires: python3-dbus
+@@ -229,9 +229,9 @@ Requires: python3-dbus
  Requires: dmidecode
  %endif
  Requires: libreport-plugin-ureport
@@ -46,7 +46,7 @@ index fc89444..241aa8c 100644
  %if 0%{?fedora}
  Requires: libreport-plugin-systemd-journal
  %endif
-@@ -538,10 +538,7 @@ Requires: python2-abrt-addon
+@@ -540,10 +540,7 @@ Requires: python2-abrt-addon
  Requires: python3-abrt-addon
  %endif # with python3
  Requires: abrt-addon-xorg
@@ -58,7 +58,7 @@ index fc89444..241aa8c 100644
  Requires: abrt-retrace-client
  %if %{with bodhi}
  Requires: abrt-plugin-bodhi
-@@ -582,10 +579,7 @@ Requires: abrt-addon-xorg
+@@ -584,10 +581,7 @@ Requires: abrt-addon-xorg
  Requires: gdb-headless
  Requires: abrt-gui
  Requires: gnome-abrt
@@ -70,7 +70,7 @@ index fc89444..241aa8c 100644
  Requires: abrt-retrace-client
  %if %{with bodhi}
  Requires: abrt-plugin-bodhi
-@@ -735,7 +729,6 @@ CFLAGS="%{optflags} -Werror" %configure \
+@@ -737,7 +731,6 @@ CFLAGS="%{optflags} -Werror" %configure \
  %endif
  %if 0%{?rhel}
          --enable-suggest-autoreporting \
@@ -78,16 +78,15 @@ index fc89444..241aa8c 100644
  %endif
  %ifnarch %{arm}
          --enable-native-unwinder \
-@@ -1380,6 +1373,9 @@ killall abrt-dbus >/dev/null 2>&1 || :
+@@ -1382,6 +1375,9 @@ killall abrt-dbus >/dev/null 2>&1 || :
  %config(noreplace) %{_sysconfdir}/profile.d/abrt-console-notification.sh
- 
+
  %changelog
-+* Fri Dec 17 2023 Louis Abel <label@rockylinux.org> - 2.10.9-24.openela.0.1
++* Fri Dec 05 2025 Louis Abel <label@rockylinux.org> - 2.10.9-25.openela.0.1
 +- Remove RHT patches
 +
- * Thu Feb 16 2023 Matěj Grabovský <mgrabovs@redhat.com> - 2.10.9-24
- - Revert part of patch for rhbz#2137499
- - Resolves: rhbz#2137499
--- 
-2.39.1
-
+ * Tue Nov 18 2025 Michal Srb <michal@redhat.com> - 2.10.9-25
+ - a-a-save-container-data: validate input
+ - Resolves: CVE-2025-12744
+--
+2.47.3
